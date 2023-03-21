@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html>
+  <head></head>
+  <body></body>
+</html>
+
+
+<script>
+function count_domains(domains_list, min_hits = 0) {
+  const domain_counts = {};
+  const lines = domains_list.trim().split("\n");
+  for (let i = 0; i < lines.length; i++) {
+    const line = lines[i].trim().split(/\s+/);
+    let domain = line[0].replace(/^\*\.?/, "");
+    const hits = parseInt(line[1]);
+    while (true) {
+      if (/^\w\w(\.[^\.]+){2,}$/.test(domain)) {
+        break;
+      }
+      domain = domain.replace(/^[^\.]+\.?/, "");
+    }
+    domain_counts[domain] = (domain_counts[domain] || 0) + hits;
+  }
+
+  const filtered_domains = [];
+  for (const domain in domain_counts) {
+    if (domain_counts[domain] >= min_hits) {
+      filtered_domains.push({ domain, hits: domain_counts[domain] });
+    }
+  }
+  filtered_domains.sort(
+    (a, b) => b.hits - a.hits || a.domain.localeCompare(b.domain)
+  );
+
+  let output = "";
+  for (let i = 0; i < filtered_domains.length; i++) {
+    const { domain, hits } = filtered_domains[i];
+    let formatted_domain = domain;
+    if (/\.co\.\w\w$/.test(domain) || /\.com\.\w\w$/.test(domain)) {
+      formatted_domain = domain.replace(/^(.+)\.([^.]+\.[^.]+)$/, "$2.$1");
+    } else {
+      formatted_domain = domain.replace(/^(.+)\.([^.]+\.[^.]+)$/, "$2");
+    }
+    output += `${formatted_domain} (${hits})\n`;
+  }
+  return output.trim();
+}
+
+
+const domains_list = `*.amazon.co.uk 89
+*.doubleclick.net 139
+*.fbcdn.net 212
+*.in-addr.arpa 384
+*.l.google.com 317
+1.client-channel.google.com 110
+6.client-channel.google.com 45
+a.root-servers.net 1059
+apis.google.com 43
+clients4.google.com 71
+clients6.google.com 81
+connect.facebook.net 68
+edge-mqtt.facebook.com 56
+graph.facebook.com 150
+mail.google.com 128
+mqtt-mini.facebook.com 47
+ssl.google-analytics.com 398
+star-mini.c10r.facebook.com 46
+staticxx.facebook.com 48
+www.facebook.com 178
+www.google.com 162
+www.google-analytics.com 127
+www.googleapis.com 87`;
+console.log(count_domains(domains_list, 0));
+</script>
